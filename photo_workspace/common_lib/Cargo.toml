@@ -10,3 +10,7 @@ edition = "2021"
 tracing = "0.1.40"
 #用于订阅正在发生的日志、监控事件
 tracing-subscriber = {version = "0.3.17", features = ["env-filter"] }
+#序列化
+serde =  { version = "1.0.190", features = ["derive"] }
+#序列化JSON
+serde_json = "1.0.108"

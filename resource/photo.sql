@@ -14,7 +14,7 @@ CREATE TABLE `photo` (
 	`user_id` VARCHAR ( 32 ) NOT NULL,
 	`photo_path` VARCHAR ( 1024 ),
 	`remark` TEXT,
-	`create_time` DATETIME,
-	`update_time` DATETIME,
+	`create_time` DATETIME DEFAULT CURRENT_TIMESTAMP ,
+	`update_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY ( `id` )
 ) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;

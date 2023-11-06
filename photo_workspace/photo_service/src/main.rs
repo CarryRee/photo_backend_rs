@@ -9,6 +9,9 @@ use axum::{
 
 mod database;
 mod endpoint;
+mod model;
+
+
 
 #[tokio::main]
 async fn main() {
@@ -34,6 +37,7 @@ async fn run_service() {
     // build our application with a route
     let app = Router::new()
         .route("/", get(endpoint::api_root::root))
+        .route("/photos", get(endpoint::api_photo::get_photos))
         .with_state(pool);
 
     let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
