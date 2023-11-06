@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "photo_service",
+    "auth_service",
+    "common_lib",
+]
