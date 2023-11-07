@@ -3,7 +3,9 @@ use common_lib::model::db;
 use sqlx::{Pool, MySql};
 use axum::http::StatusCode;
 
-
+/***
+ * 查询图片
+ */
 pub async fn query_photos(
     pool: &Pool<MySql>,
     page_index: i64,

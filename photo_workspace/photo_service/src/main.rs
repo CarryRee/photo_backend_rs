@@ -4,9 +4,10 @@ use std::env;
 
 use axum::{
     routing::{get, post},
+    extract::DefaultBodyLimit,
     Router,
 };
-
+use tower_http::limit::RequestBodyLimitLayer;
 mod database;
 mod endpoint;
 mod model;
@@ -38,7 +39,13 @@ async fn run_service() {
     let app = Router::new()
         .route("/", get(endpoint::api_root::root))
         .route("/photos", get(endpoint::api_photo::get_photos))
+        .route("/upload_photos", post(endpoint::api_photo::upload_photo))
+        .layer(DefaultBodyLimit::disable())
+        .layer(RequestBodyLimitLayer::new(
+            100 * 1024 * 1024 // 100 mb
+        ))
         .with_state(pool);
+
 
     let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
 

@@ -1,6 +1,10 @@
 use axum::{extract::{State, Query}, Json};
-use axum::http::StatusCode;
 use sqlx::{Pool, MySql};
+
+use axum::{
+    extract::Multipart,
+    http::StatusCode,
+};
 
 use crate::model::photo_model::{PhotoModel, QueryRequest};
 use crate::database::db_photo;
@@ -37,4 +41,31 @@ pub async fn get_photos(
     let response: Response<Page<PhotoModel>> = Response {code:0, message: "success".to_string(), data: page};
 
     Ok(Json(response))
+}
+
+
+pub async fn upload_photo (
+    mut multipart:Multipart
+) -> Result<String, (StatusCode, String)> {
+
+    while let Some(field) = multipart.next_field().await.unwrap() {
+        let name = field.name().unwrap().to_string();
+        // 原文件名
+        let file_name = field.file_name().unwrap().to_string();
+        // 文件类型
+        let content_type = field.content_type().unwrap().to_string();
+
+        if content_type.starts_with("image/"){
+            
+        }
+        // 原始数据
+        let data = field.bytes().await.unwrap();
+
+        tracing::info!(
+            "Length of `{name}` (`{file_name}`: `{content_type}`) is {} bytes",
+            data.len()
+        );
+    }
+
+    Ok("Ok".to_string())
 }
