@@ -1,13 +1,14 @@
 use crate::model::photo_model::PhotoModel;
+use common_lib::model::db;
 use sqlx::{Pool, MySql};
 use axum::http::StatusCode;
 
 
 pub async fn query_photos(
     pool: &Pool<MySql>,
-    page_index: u32,
-    page_size: u32,
-) -> Result<Vec<PhotoModel>, (StatusCode, String)> {
+    page_index: i64,
+    page_size: i64,
+) -> Result<(Vec<PhotoModel>, i64), (StatusCode, String)> {
 
     // 计算偏移量
     let offset = (page_index - 1) * page_size;
@@ -23,7 +24,13 @@ FROM photo ORDER BY id LIMIT ? OFFSET ?", page_size, offset)
         .await
         .unwrap();
 
+    // 总数
+    let count = sqlx::query_as!(db::Count, "SELECT COUNT(1) AS count FROM photo")
+        .fetch_one(&mut *transaction)
+        .await
+        .unwrap();
+
     transaction.commit().await.unwrap();
 
-    Ok(photos)
+    Ok((photos, count.count))
 }

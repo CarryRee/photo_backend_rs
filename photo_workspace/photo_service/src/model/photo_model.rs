@@ -16,6 +16,6 @@ pub struct PhotoModel {
 #[derive(Debug, Deserialize)]
 pub struct QueryRequest {
     // 非必要参数用 Option
-    pub page_size: Option<u32>,
-    pub page_index: Option<u32>,
+    pub page_size: Option<i64>,
+    pub page_index: Option<i64>,
 }
