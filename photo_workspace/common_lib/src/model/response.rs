@@ -4,7 +4,7 @@ use serde::Serialize;
 pub struct Response <T: serde::Serialize> {
     pub code: i32,
     pub message: String,
-    pub data: T,
+    pub data: Option<T>,
 }
 
 // 序列化要求加上 Serialize

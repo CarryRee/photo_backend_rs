@@ -12,6 +12,8 @@ pub async fn query_photos(
     page_size: i64,
 ) -> Result<(Vec<PhotoModel>, i64), (StatusCode, String)> {
 
+    tracing::info!("db:query_photos");
+
     // 计算偏移量
     let offset = (page_index - 1) * page_size;
 
@@ -35,4 +37,23 @@ FROM photo ORDER BY id LIMIT ? OFFSET ?", page_size, offset)
     transaction.commit().await.unwrap();
 
     Ok((photos, count.count))
+}
+
+/***
+ * 插入或更新图片信息
+ */
+pub async fn insert_or_update_photo (
+    pool: &Pool<MySql>,
+    photo: &PhotoModel
+) -> Result<(), (StatusCode, String)> {
+
+    tracing::info!("dbinsert_or_update_photo");
+
+    let _ = sqlx::query!(
+"REPLACE INTO photo (id, user_id, photo_path, remark, update_time)
+ VALUES (?, ?, ?, ?, curtime())", photo.id, photo.user_id, photo.photo_path, photo.remark)
+    .fetch_all(pool)
+    .await;
+
+    Ok(())
 }
