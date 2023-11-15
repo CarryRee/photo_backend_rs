@@ -24,3 +24,8 @@ pub struct QueryRequest {
     pub page_size: Option<i64>,
     pub page_index: Option<i64>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct QueryCollect<T> {
+    pub ids: Option<Vec<T>>,
+}

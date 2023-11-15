@@ -47,7 +47,7 @@ pub async fn insert_or_update_photo (
     photo: &PhotoModel
 ) -> Result<(), (StatusCode, String)> {
 
-    tracing::info!("dbinsert_or_update_photo");
+    tracing::info!("db:insert_or_update_photo");
 
     let _ = sqlx::query!(
 "REPLACE INTO photo (id, user_id, photo_path, remark, update_time)
@@ -55,5 +55,26 @@ pub async fn insert_or_update_photo (
     .fetch_all(pool)
     .await;
 
+    Ok(())
+}
+
+pub async fn delete_photos (
+    pool: &Pool<MySql>,
+    photo_ids: &Vec<i32>,
+) -> Result<(), (StatusCode, String)> {
+    tracing::info!("db:delete_photos");
+
+    let params = format!("?{}", ", ?".repeat(photo_ids.len()-1));
+
+    let sql = format!("DELETE FROM photo WHERE id IN ({})", params);
+    let mut query = sqlx::query(&sql);
+
+    for id in photo_ids {
+        println!("{}", id);
+        query = query.bind(id);
+    }
+
+    let _ = query.fetch_all(pool).await;
+    
     Ok(())
 }

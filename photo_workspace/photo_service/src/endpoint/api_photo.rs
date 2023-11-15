@@ -3,20 +3,22 @@ use sqlx::{Pool, MySql};
 use std::env;
 use std::path::Path;
 use uuid::Uuid;
-use chrono::prelude::*;
 
 use axum::{
     extract::Multipart,
     http::StatusCode,
 };
 
-use crate::model::photo_model::{PhotoModel, QueryRequest};
+use crate::model::photo_model::{PhotoModel, QueryRequest, QueryCollect};
 use crate::database::db_photo;
 use common_lib::model::response::{Response, Page};
 
+/**
+    获取图片接口
+*/
 pub async fn get_photos(
     State(pool): State<Pool<MySql>>,
-    Query(query_params): Query<QueryRequest>,
+    Query(query_params): Query<QueryRequest>, // 使用Params传参
 ) -> Result<Json<Response<Page<PhotoModel>>>, (StatusCode, String)> {
 
     let index = match query_params.page_index {
@@ -47,10 +49,12 @@ pub async fn get_photos(
     Ok(Json(response))
 }
 
-
+/**
+    上传图片接口
+*/
 pub async fn upload_photo (
     State(pool): State<Pool<MySql>>,
-    mut multipart:Multipart,
+    mut multipart:Multipart, // 使用form-data传参
 ) -> Result<Json<Response<()>>, (StatusCode, String)> {
     /*
         这里用 if let 只接受一张图片
@@ -60,20 +64,15 @@ pub async fn upload_photo (
     let mut complete = false;
 
     if let Some(field) = multipart.next_field().await.unwrap() {
-        tracing::info!(
-            "11111111111111111"
-        );
-        let name = field.name().unwrap().to_string();
-
-        tracing::info!(
-            "2222222222222222"
-        );
-        // 原文件名
-        let file_name = field.file_name().unwrap().to_string();
         // 文件类型
-        let content_type = field.content_type().unwrap().to_string();
+        let content_type = field.content_type().unwrap_or("").to_string();
 
-        if content_type.starts_with("image/"){
+        if content_type.starts_with("image/") {
+            let name = field.name().unwrap().to_string();
+
+            // 原文件名
+            let file_name = field.file_name().unwrap().to_string();
+
             let file_path = env::var("FILE_PATH").unwrap();
             // 扩展名
             let path = Path::new(&file_name);
@@ -120,6 +119,7 @@ pub async fn upload_photo (
                 },
             }
         }
+        
     } else {
         tracing::info!("Not Found File!");
     }
@@ -127,6 +127,37 @@ pub async fn upload_photo (
     let mut code = 4000;
     let mut message = "failure";
     if complete == true {
+        code = 0;
+        message = "success";
+    }
+
+    let response: Response<()> = Response{code:code, message: message.to_string(), data:Some(()) };
+    Ok(Json(response))
+}
+
+/**
+    删除图片接口
+*/
+pub async fn delete_photos(
+    State(pool): State<Pool<MySql>>,
+    Json(query_params): Json<QueryCollect<i32>>, // 使用Body传参
+) -> Result<Json<Response<()>>, (StatusCode, String)> {
+
+    let rs = match query_params.ids {
+        Some(x) => {
+            let result = db_photo::delete_photos(&pool, &x).await;
+            let b = match result { 
+                Ok(()) => true,
+                Err(_) => false,
+            };
+            b     
+        },
+        None => false,
+    };
+
+    let mut code = 4000;
+    let mut message = "failure";
+    if rs == true {
         code = 0;
         message = "success";
     }

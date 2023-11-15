@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::env;
 
 use axum::{
-    routing::{get, post},
+    routing::{get, post, delete},
     extract::DefaultBodyLimit,
     Router,
 };
@@ -39,6 +39,7 @@ async fn run_service() {
     let app = Router::new()
         .route("/", get(endpoint::api_root::root))
         .route("/photos", get(endpoint::api_photo::get_photos))
+        .route("/photos", delete(endpoint::api_photo::delete_photos))
         .route("/upload_photos", post(endpoint::api_photo::upload_photo))
         .layer(DefaultBodyLimit::disable())
         .layer(RequestBodyLimitLayer::new(
