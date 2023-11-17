@@ -160,6 +160,7 @@ pub async fn delete_photos(
     if rs == true {
         code = 0;
         message = "success";
+        
     }
 
     let response: Response<()> = Response{code:code, message: message.to_string(), data:Some(()) };

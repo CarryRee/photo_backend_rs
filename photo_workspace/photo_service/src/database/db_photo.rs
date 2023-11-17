@@ -58,6 +58,9 @@ pub async fn insert_or_update_photo (
     Ok(())
 }
 
+/***
+ * 删除图片
+ */
 pub async fn delete_photos (
     pool: &Pool<MySql>,
     photo_ids: &Vec<i32>,
@@ -70,7 +73,6 @@ pub async fn delete_photos (
     let mut query = sqlx::query(&sql);
 
     for id in photo_ids {
-        println!("{}", id);
         query = query.bind(id);
     }
 
