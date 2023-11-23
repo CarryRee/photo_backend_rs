@@ -1,3 +1,50 @@
-fn main() {
-    println!("Hello, world!");
+use tracing::Level;
+use std::net::SocketAddr; 
+use std::env;
+
+use axum::{
+    routing::{get, post, delete},
+    Router,
+};
+
+mod database;
+mod api;
+mod model;
+
+
+#[tokio::main]
+async fn main() {
+    run_service().await;
+}
+
+async fn run_service() {
+
+    // tracing
+    tracing_subscriber::fmt()
+    // filter spans/events with level TRACE or higher.
+    .with_max_level(Level::TRACE)
+    // build but do not install the subscriber.
+    .init();
+
+    // env
+    dotenvy::dotenv().expect(".env file not found");
+    let port = env::var("AUTH_SERVER_PORT").unwrap();
+
+    // database pool
+    let pool = database::config::get_pool().await.unwrap();
+
+    // build our application with a route
+    let app = Router::new()
+        .route("/sign-in", post(api::auth::sign_in))
+        .route("/sign-up", post(api::auth::sign_up))
+        .with_state(pool);
+
+    let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
+
+    // run it with hyper on localhost:port
+    axum::Server::bind(&address)
+        .serve(app.into_make_service())
+        .await
+        .unwrap()
+
 }

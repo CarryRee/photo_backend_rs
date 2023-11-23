@@ -30,7 +30,7 @@ async fn run_service() {
 
     // env
     dotenvy::dotenv().expect(".env file not found");
-    let port = env::var("PHOTO_SEVER_PORT").unwrap();
+    let port = env::var("PHOTO_SERVER_PORT").unwrap();
 
     // database pool
     let pool = database::db_config::get_pool().await.unwrap();

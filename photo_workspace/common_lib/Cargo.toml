@@ -14,3 +14,14 @@ tracing-subscriber = {version = "0.3.17", features = ["env-filter"] }
 serde =  { version = "1.0.190", features = ["derive"] }
 #序列化JSON
 serde_json = "1.0.108"
+#网络框架
+axum = {version = "0.6.20", features = ["multipart", "headers"] }
+#异步
+tokio = {version = "1.33.0", features = ["full"] }
+#模块化组件库
+tower = "0.4.13"
+tower-http = { version = "0.5.0", features = ["limit", "trace"] }
+#权限认证
+casbin = { version = "2.0.9", default-features = false, features = ["runtime-async-std", "logging", "incremental"] }
+#数据库
+sqlx = { version = "0.7.2", features = [ "runtime-tokio", "tls-native-tls", "mysql", "chrono"] }
