@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 #网络框架
-axum = {version = "0.6.20", features = ["multipart", "headers"] }
+axum = {version = "0.6.20", features = ["multipart", "headers", "tokio", "tracing"] }
+#中间文件
+axum-casbin = "0.1.1"
 #异步
 tokio = {version = "1.33.0", features = ["full"] }
 #模块化组件库
@@ -29,6 +31,7 @@ dotenvy = "0.15.7"
 chrono = { version = "0.4.31", features = ["serde"] }
 #公共库
 common_lib = {path = "../common_lib"}
+#公共库
+auth_core = {path = "../auth_core"}
 #uuid
 uuid = { version = "1.5.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
-

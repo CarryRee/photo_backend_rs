@@ -9,3 +9,5 @@ pub const CODE_FAILURE: i32 = 40000;
 pub const CODE_PARAMETER_ERROR: i32 = 40001;
 pub const CODE_ACCOUNT_ALREADY_EXISTS: i32 = 40002;
 pub const CODE_WRONG_ACCOUNT_OR_PASSWORD: i32 = 40003;
+
+pub const AUTHORIZATION: &str = "Authorization";

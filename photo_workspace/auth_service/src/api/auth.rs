@@ -3,10 +3,17 @@ use sqlx::{Pool, MySql};
 use axum::http::StatusCode;
 use validator::Validate;
 use tracing::info;
-use common_lib::{model::response::Response, constant};
-use crate::model::user::SignUser;
-use crate::model::user_token::{UserToken, TokenResp};
-use crate::database::user;
+use auth_core::{
+    model::{
+        user_token::{UserToken, TokenResp},
+        user::SignUser
+    },
+    db::user,
+};
+use common_lib::{
+    model::response::Response,
+    constant,
+};
 
 pub async fn sign_in(
     State(pool): State<Pool<MySql>>,
@@ -25,10 +32,9 @@ pub async fn sign_in(
         info!("find registered user {:?}.", user);
         
         if user.password.eq(&sign_user.password)  {
-            let token = UserToken::generate_token(&user.uuid);
+            let token = UserToken::generate_token(&user.uuid, &user.name);
 
             let data = TokenResp {
-                uuid: user.uuid.clone(),
                 token_type: "Bearer".to_string(),
                 access_token: token
             };
@@ -42,7 +48,7 @@ pub async fn sign_in(
     Ok(Json(response))
 }
 
-pub async fn sign_up(
+pub async fn sign_up (
     State(pool): State<Pool<MySql>>,
     Json(sign_user): Json<SignUser>, // 使用Json传参
 ) -> Result<Json<Response<()>>, (StatusCode, String)> {

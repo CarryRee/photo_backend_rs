@@ -1,62 +1,67 @@
-use crate::{
-    constants,
-    model::{db::Pool, response::ResponseBody},
-    utils::token_utils,
-};
-
 use axum::{
     body::{self, BoxBody},
-    extract::Extension,
-    http::{
-        header::{HeaderName, HeaderValue},
-        Method,
-    },
     response::{IntoResponse, Response},
     BoxError, Json,
+    http::Request,
 };
-use axum_casbin_auth::CasbinVals;
-use bytes::Bytes;
-use futures::future::BoxFuture;
-use http::{self, Request};
-use http_body::Body as HttpBody;
 use std::{
     boxed::Box,
     convert::Infallible,
     task::{Context, Poll},
 };
+use futures::future::BoxFuture;
+use bytes::Bytes;
 use tower::{Layer, Service};
+use sqlx::pool::Pool;
+use tokio::runtime::Runtime;
+use common_lib::{
+    model::response,
+    constant,
+};
+
+use crate::{
+    model::user_token,
+    db::user,
+};
+
+
 
 #[derive(Clone)]
-pub struct AuthLayer;
+pub struct AuthLayer {
+    pub state: Pool<sqlx::MySql>,
+}
 
 impl<S> Layer<S> for AuthLayer {
     type Service = AuthMiddleware<S>;
 
     fn layer(&self, inner: S) -> Self::Service {
-        AuthMiddleware { inner }
+        AuthMiddleware { 
+            inner,
+            state: self.state.clone(),
+        }
     }
 }
 
 #[derive(Clone)]
 pub struct AuthMiddleware<S> {
     inner: S,
+    state: Pool<sqlx::MySql>,
 }
 
 impl<S, ReqBody, ResBody> Service<Request<ReqBody>> for AuthMiddleware<S>
 where
     S: Service<Request<ReqBody>, Response = Response<ResBody>, Error = Infallible>
-        + Clone
-        + Send
-        + 'static,
+    + Clone
+    + Send
+    + 'static,
     S::Future: Send + 'static,
     ReqBody: Send + 'static,
     Infallible: From<<S as Service<Request<ReqBody>>>::Error>,
-    ResBody: HttpBody<Data = Bytes> + Send + 'static,
+    ResBody: axum::body::HttpBody<Data = Bytes> + Send + 'static,
     ResBody::Error: Into<BoxError>,
 {
     type Response = Response<BoxBody>;
     type Error = Infallible;
-    // `BoxFuture` is a type alias for `Pin<Box<dyn Future + Send + 'a>>`
     type Future = BoxFuture<'static, Result<Self::Response, Self::Error>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -64,6 +69,52 @@ where
     }
 
     fn call(&mut self, mut req: Request<ReqBody>) -> Self::Future {
+
+        let state = self.state.clone();
+
+        tracing::info!("middleware called!");
+
+        let clone = self.inner.clone();
+        let mut inner = std::mem::replace(&mut self.inner, clone);
+
+        let mut authenticate_pass: bool = false;
+
+        if let Some(auth_header) = req.headers().get(constant::AUTHORIZATION) {
+            tracing::info!("Parsing authorization header...");
+            if let Ok(auth_str) = auth_header.to_str() {
+                if auth_str.starts_with("bearer") || auth_str.starts_with("Bearer") {
+                    tracing::info!("Parsing token...");
+                    let token = auth_str[6..auth_str.len()].trim();
+
+                    if let Ok(token_data) = user_token::UserToken::decode_token(token.to_string())
+                    {
+                        tracing::info!("Decoding token...");
+                        let user_token = token_data.claims;
+                        authenticate_pass = true;
+                    }
+                }
+            }
+        }
+        //这是是拦截信息
+        if authenticate_pass {
+            Box::pin(async move {
+                let res = inner.call(req).await?.map(body::boxed);
+                Ok(res)
+            })
+        } 
+        else {
+            Box::pin(async move {
+                let res: response::Response<()> = response::Response{
+                    code: constant::CODE_ACCOUNT_ALREADY_EXISTS, 
+                    message: constant::MESSAGE_WRONG_ACCOUNT_OR_PASSWORD.to_string(), 
+                    data: None
+                };
+                Ok(Json(res).into_response())
+            })
+        }
+
+        
+        /* 
         let not_ready_inner = self.inner.clone();
         let mut inner = std::mem::replace(&mut self.inner, not_ready_inner);
         let mut authenticate_pass: bool = false;
@@ -127,5 +178,6 @@ where
                 .into_response())
             })
         }
+        */
     }
 }

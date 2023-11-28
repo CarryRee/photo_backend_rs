@@ -7,11 +7,12 @@ use axum::{
     extract::DefaultBodyLimit,
     Router,
 };
-use tower_http::limit::RequestBodyLimitLayer;
+use tower_http::limit::RequestBodyLimitLayer; 
+use auth_core::middleware::auth;
+
 mod database;
 mod endpoint;
 mod model;
-
 
 
 #[tokio::main]
@@ -45,8 +46,8 @@ async fn run_service() {
         .layer(RequestBodyLimitLayer::new(
             100 * 1024 * 1024 // 100 mb
         ))
+        .layer(auth::AuthLayer {state: pool.clone()})
         .with_state(pool);
-
 
     let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
 

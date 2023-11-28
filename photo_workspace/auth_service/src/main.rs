@@ -7,10 +7,8 @@ use axum::{
     Router,
 };
 
-mod database;
 mod api;
-mod model;
-
+mod database;
 
 #[tokio::main]
 async fn main() {

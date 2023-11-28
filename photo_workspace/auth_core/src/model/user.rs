@@ -12,6 +12,7 @@ pub struct SignUser {
     pub password: String,
 }
 
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     pub id: Option<i32>,

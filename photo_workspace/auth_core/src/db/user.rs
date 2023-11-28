@@ -1,3 +1,5 @@
+use std::future::Future;
+use std::future::IntoFuture;
 
 use crate::model::user::{SignUser, User};
 use sqlx::{Pool, MySql};
@@ -16,7 +18,7 @@ pub async fn insert_user (
         uuid: Uuid::new_v4().to_string(),
         name: sign_user.name.to_string(),
         password: sign_user.password.to_string(),
-        status: 1,
+        status: 1,  
         create_time: None,
         update_time: None,
     };
@@ -30,7 +32,7 @@ pub async fn insert_user (
     Ok(())
 }
 
-pub async fn query_user(
+pub async fn query_user_by_name (
     pool: &Pool<MySql>,
     username: &str
 ) -> Result<User, (StatusCode, String)> {
@@ -39,6 +41,22 @@ pub async fn query_user(
 "SELECT id, uuid, name, password, status, create_time, update_time FROM user WHERE name = ?", username)
     .fetch_one(pool)
     .await;
+
+    match obj {
+        Ok(user) => Ok(user),
+        Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
+    }
+}
+
+pub async fn query_user_by_uuid (
+    pool: &Pool<MySql>,
+    username: &str,
+    uuid: &str,
+) -> Result<User, (StatusCode, String)> {
+
+    let obj = sqlx::query_as!(User,
+"SELECT id, uuid, name, password, status, create_time, update_time FROM user WHERE name = ? AND uuid = ?", username, uuid)
+    .fetch_one(pool).await;
 
     match obj {
         Ok(user) => Ok(user),
