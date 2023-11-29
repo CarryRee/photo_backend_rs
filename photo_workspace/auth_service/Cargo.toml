@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 #网络框架
-axum = {version = "0.6.20", features = ["multipart", "headers"] }
+axum = {version = "0.7.1", features = ["multipart", "tracing", "macros", "http2"] }
 #异步
 tokio = {version = "1.33.0", features = ["full"] }
 #模块化组件库
@@ -33,8 +33,6 @@ common_lib = {path = "../common_lib"}
 auth_core = {path = "../auth_core"}
 #uuid
 uuid = { version = "1.5.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
-#权限认证
-casbin = { version = "2.0.9", default-features = false, features = ["runtime-async-std", "logging", "incremental"] }
 #jwt
 jsonwebtoken = { version = "9.1.0" }
 #

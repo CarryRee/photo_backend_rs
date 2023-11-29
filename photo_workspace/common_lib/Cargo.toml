@@ -6,27 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-#链路追踪-日志
-tracing = "0.1.40"
-#用于订阅正在发生的日志、监控事件
-tracing-subscriber = {version = "0.3.17", features = ["env-filter"] }
+#时间处理
+chrono = { version = "0.4.31", features = ["serde"] }
 #序列化
 serde =  { version = "1.0.190", features = ["derive"] }
 #序列化JSON
 serde_json = "1.0.108"
-#网络框架
-axum = {version = "0.6.20", features = ["multipart", "headers", "tokio", "tracing"] }
-#异步
-tokio = {version = "1.33.0", features = ["full"] }
-#模块化组件库
-tower = "0.4.13"
-#并发
-futures = "0.3.29"
-#数据库
-sqlx = { version = "0.7.2", features = [ "runtime-tokio", "tls-native-tls", "mysql", "chrono"] }
-#jwt
-jsonwebtoken = { version = "9.1.0" }
-#字节
-bytes = "1.5.0"
-#时间处理
-chrono = { version = "0.4.31", features = ["serde"] }

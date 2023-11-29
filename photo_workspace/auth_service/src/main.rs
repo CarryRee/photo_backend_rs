@@ -39,10 +39,10 @@ async fn run_service() {
 
     let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
 
+    // run our app with hyper, listening globally on port 3000
+    let listener = tokio::net::TcpListener::bind(address).await.unwrap();
+
     // run it with hyper on localhost:port
-    axum::Server::bind(&address)
-        .serve(app.into_make_service())
-        .await
-        .unwrap()
+    axum::serve(listener, app).await.unwrap();
 
 }

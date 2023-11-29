@@ -27,7 +27,7 @@ pub async fn sign_in(
     };
 
     // 判断用户是否存在
-    let find_user = user::query_user(&pool, &sign_user.name).await;
+    let find_user = user::query_user_by_name(&pool, &sign_user.name).await;
     if let Ok(user) = find_user {
         info!("find registered user {:?}.", user);
         
@@ -62,7 +62,7 @@ pub async fn sign_up (
     
     if rs {
         // 判断用户是否存在
-        let find_user = user::query_user(&pool, &sign_user.name).await;
+        let find_user = user::query_user_by_name(&pool, &sign_user.name).await;
         if let Ok(user) = find_user {
             info!("find registered user {:?}.", user);
 

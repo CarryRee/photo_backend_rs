@@ -6,9 +6,9 @@ use axum::{
     routing::{get, post, delete},
     extract::DefaultBodyLimit,
     Router,
+    middleware,
 };
 use tower_http::limit::RequestBodyLimitLayer; 
-use auth_core::middleware::auth;
 
 mod database;
 mod endpoint;
@@ -46,15 +46,17 @@ async fn run_service() {
         .layer(RequestBodyLimitLayer::new(
             100 * 1024 * 1024 // 100 mb
         ))
-        .layer(auth::AuthLayer {state: pool.clone()})
+        //.layer(auth::AuthLayer {state: pool.clone()})
+        .route_layer(middleware::from_fn_with_state(pool.clone(), 
+        |state, req, next: middleware::Next| auth_core::middleware::auth::auth(state, req, next)),)
         .with_state(pool);
 
     let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
 
+    // run our app with hyper, listening globally on port 3000
+    let listener = tokio::net::TcpListener::bind(address).await.unwrap();
+
     // run it with hyper on localhost:port
-    axum::Server::bind(&address)
-        .serve(app.into_make_service())
-        .await
-        .unwrap()
+    axum::serve(listener, app).await.unwrap();
 
 }
