@@ -12,3 +12,9 @@ chrono = { workspace = true }
 serde =  { workspace = true }
 #序列化JSON
 serde_json = { workspace = true }
+#缓存
+redis = { workspace = true }
+#环境配置
+dotenvy = { workspace = true }
+#数据库
+sqlx = { workspace = true }

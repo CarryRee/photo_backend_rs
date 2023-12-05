@@ -1,6 +1,7 @@
 use tracing::Level;
 use std::net::SocketAddr; 
 use std::env;
+use std::sync::Arc;
 
 use axum::{
     routing::{get, post, delete},
@@ -9,6 +10,9 @@ use axum::{
     middleware,
 };
 use tower_http::limit::RequestBodyLimitLayer; 
+
+use common_lib::utils::redis;
+use common_lib::utils::app_state::AppState;
 
 mod database;
 mod endpoint;
@@ -34,7 +38,11 @@ async fn run_service() {
     let port = env::var("PHOTO_SERVER_PORT").unwrap();
 
     // database pool
-    let pool = database::db_config::get_pool().await.unwrap();
+    let sqlx_pool = database::db_config::get_pool().await.unwrap();
+
+    let redis_pool = redis::get_client().await.unwrap();
+
+    let arc = Arc::new (AppState {db: sqlx_pool.clone(), redis: redis_pool.clone() } );
 
     // build our application with a route
     let app = Router::new()
@@ -46,10 +54,10 @@ async fn run_service() {
         .layer(RequestBodyLimitLayer::new(
             100 * 1024 * 1024 // 100 mb
         ))
-        //.layer(auth::AuthLayer {state: pool.clone()})
-        .route_layer(middleware::from_fn_with_state(pool.clone(), 
+        .route_layer(middleware::from_fn_with_state(arc.clone(), 
         |state, req, next: middleware::Next| auth_core::middleware::auth::auth(state, req, next)),)
-        .with_state(pool);
+        .with_state(arc);
+
 
     let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
 

@@ -1,5 +1,5 @@
 use axum::{extract::{State, Query}, Json};
-use sqlx::{Pool, MySql};
+use std::sync::Arc;
 use axum::http::StatusCode;
 use validator::Validate;
 use tracing::info;
@@ -12,11 +12,12 @@ use auth_core::{
 };
 use common_lib::{
     model::response::Response,
+    utils::app_state::AppState,
     constant,
 };
 
 pub async fn sign_in(
-    State(pool): State<Pool<MySql>>,
+    State(state): State<Arc<AppState>>,
     Json(sign_user): Json<SignUser>, // 使用Json传参
 ) -> Result<Json<Response<TokenResp>>, (StatusCode, String)> {
 
@@ -27,7 +28,7 @@ pub async fn sign_in(
     };
 
     // 判断用户是否存在
-    let find_user = user::query_user_by_name(&pool, &sign_user.name).await;
+    let find_user = user::query_user_by_name(&state.db, &sign_user.name).await;
     if let Ok(user) = find_user {
         info!("find registered user {:?}.", user);
         
@@ -49,7 +50,7 @@ pub async fn sign_in(
 }
 
 pub async fn sign_up (
-    State(pool): State<Pool<MySql>>,
+    State(state): State<Arc<AppState>>,
     Json(sign_user): Json<SignUser>, // 使用Json传参
 ) -> Result<Json<Response<()>>, (StatusCode, String)> {
 
@@ -62,7 +63,7 @@ pub async fn sign_up (
     
     if rs {
         // 判断用户是否存在
-        let find_user = user::query_user_by_name(&pool, &sign_user.name).await;
+        let find_user = user::query_user_by_name(&state.db, &sign_user.name).await;
         if let Ok(user) = find_user {
             info!("find registered user {:?}.", user);
 
@@ -70,7 +71,7 @@ pub async fn sign_up (
             code = constant::CODE_ACCOUNT_ALREADY_EXISTS;
         }
         else {
-            let _ = user::insert_user(&pool, &sign_user).await;
+            let _ = user::insert_user(&state.db, &sign_user).await;
 
             message = constant::MESSAGE_SUCCESS;
             code = constant::CODE_SUCCESS;

@@ -5,7 +5,7 @@ use jsonwebtoken::{EncodingKey, Header};
 use std::env;
 use jsonwebtoken::{DecodingKey, TokenData, Validation};
 
-static THREE_DAY: i64 = 60 * 60 * 24 * 3 ;
+pub static THREE_DAY: i64 = 60 * 60 * 24 * 3 ;
 
 #[derive(Serialize, Deserialize)]
 pub struct UserToken {

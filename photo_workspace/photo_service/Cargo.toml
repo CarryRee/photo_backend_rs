@@ -30,6 +30,8 @@ dotenvy = { workspace = true }
 chrono = { workspace = true }
 #uuid
 uuid = { workspace = true }
+#缓存
+redis = { workspace = true }
 #公共库
 common_lib = {path = "../common_lib"}
 #权限库

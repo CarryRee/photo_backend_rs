@@ -2,7 +2,9 @@ use axum::{extract::{State, Query}, Json};
 use sqlx::{Pool, MySql};
 use std::env;
 use std::path::Path;
+use std::sync::Arc;
 use uuid::Uuid;
+
 
 use axum::{
     extract::Multipart,
@@ -11,13 +13,13 @@ use axum::{
 
 use crate::model::photo_model::{PhotoModel, QueryRequest, QueryCollect};
 use crate::database::db_photo;
-use common_lib::model::response::{Response, Page};
+use common_lib::{model::response::{Response, Page}, utils::app_state::AppState};
 
 /**
     获取图片接口
 */
 pub async fn get_photos(
-    State(pool): State<Pool<MySql>>,
+    State(state): State<Arc<AppState>>,
     Query(query_params): Query<QueryRequest>, // 使用Params传参
 ) -> Result<Json<Response<Page<PhotoModel>>>, (StatusCode, String)> {
 
@@ -31,7 +33,7 @@ pub async fn get_photos(
         _ => 20
     };
 
-    let photo_models: (Vec<PhotoModel>, i64) = db_photo::query_photos(&pool, index, size).await?;
+    let photo_models: (Vec<PhotoModel>, i64) = db_photo::query_photos(&state.db, index, size).await?;
     
     let total = photo_models.1;
     let residue = if total % size == 0 {0} else {1};
@@ -53,7 +55,7 @@ pub async fn get_photos(
     上传图片接口
 */
 pub async fn upload_photo (
-    State(pool): State<Pool<MySql>>,
+    State(state): State<Arc<AppState>>,
     mut multipart:Multipart, // 使用form-data传参
 ) -> Result<Json<Response<()>>, (StatusCode, String)> {
     /*
@@ -107,7 +109,7 @@ pub async fn upload_photo (
                         update_time: None,
                     };
                     
-                    let result = db_photo::insert_or_update_photo(&pool, &photo).await;
+                    let result = db_photo::insert_or_update_photo(&state.db, &photo).await;
                     let b = match result { 
                         Ok(()) => true,
                         Err(_) => false,
@@ -139,13 +141,13 @@ pub async fn upload_photo (
     删除图片接口
 */
 pub async fn delete_photos(
-    State(pool): State<Pool<MySql>>,
+    State(state): State<Arc<AppState>>,
     Json(query_params): Json<QueryCollect<i32>>, // 使用Body传参
 ) -> Result<Json<Response<()>>, (StatusCode, String)> {
 
     let rs = match query_params.ids {
         Some(x) => {
-            let result = db_photo::delete_photos(&pool, &x).await;
+            let result = db_photo::delete_photos(&state.db, &x).await;
             let b = match result { 
                 Ok(()) => true,
                 Err(_) => false,

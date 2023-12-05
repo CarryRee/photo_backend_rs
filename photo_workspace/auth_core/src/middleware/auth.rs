@@ -1,4 +1,6 @@
+use std::sync::Arc;
 
+use redis::AsyncCommands;
 
 use axum::{
     http::StatusCode,
@@ -8,7 +10,6 @@ use axum::{
     Json,
     middleware::Next,
 };
-use sqlx::{Pool, MySql};
 
 use crate::{
     model::user_token,
@@ -17,11 +18,15 @@ use crate::{
 
 use common_lib::{
     model::response,
-    constant,
+    constant, utils::app_state::AppState,
 };
 
 
-pub async fn auth(State(pool): State<Pool<MySql>>, mut req: Request, next: Next) -> Result<Response, StatusCode> {
+pub async fn auth(
+    State(state): State<Arc<AppState>>, 
+    mut req: Request, 
+    next: Next
+) -> Result<Response, StatusCode> {
     let auth_header = req.headers()
         .get(constant::AUTHORIZATION)
         .and_then(|header| header.to_str().ok());
@@ -36,6 +41,7 @@ pub async fn auth(State(pool): State<Pool<MySql>>, mut req: Request, next: Next)
         data: None
     };
 
+    // 是否通过登录校验
     if let Some(auth_str) = auth_header {
 
         if auth_str.starts_with("bearer") || auth_str.starts_with("Bearer") {
@@ -46,9 +52,20 @@ pub async fn auth(State(pool): State<Pool<MySql>>, mut req: Request, next: Next)
                 tracing::info!("Decoding token...");
                 let user_token: user_token::UserToken = token_data.claims;
 
-                if let Ok(user) = user::query_user_by_uuid(&pool, &user_token.name, &user_token.uuid).await {
-                    uuid = Some(user.uuid);
-                } 
+                let mut con = state.redis.get_async_connection().await.unwrap();
+
+                // 检查 redis 这个用户是否登录过
+                if let Ok(value) = con.get(user_token.uuid.clone()).await {
+                    tracing::info!("key = {}, value = {}", user_token.uuid.clone(), value);
+                    uuid = Some(value);
+                }
+                else {
+                    if let Ok(user) = user::query_user_by_uuid(&state.db, &user_token.name, &user_token.uuid).await {
+                        uuid = Some(user.uuid);
+                        // 设置 key value 和过期时间
+                        let _: () = con.set_ex(user_token.uuid.clone(), "1", usize::try_from(user_token::THREE_DAY).unwrap()).await.unwrap();
+                    } 
+                }
             }
         }
     } else {

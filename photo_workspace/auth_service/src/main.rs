@@ -1,11 +1,13 @@
 use tracing::Level;
 use std::net::SocketAddr; 
 use std::env;
+use std::sync::Arc;
 
 use axum::{
     routing::{get, post, delete},
     Router,
 };
+use common_lib::utils::{app_state::AppState, redis};
 
 mod api;
 mod database;
@@ -29,14 +31,18 @@ async fn run_service() {
     let port = env::var("AUTH_SERVER_PORT").unwrap();
 
     // database pool
-    let pool = database::config::get_pool().await.unwrap();
+    let sqlx_pool = database::config::get_pool().await.unwrap();
+
+    let redis_clent = redis::get_client().await.unwrap();
+
+    let arc = Arc::new (AppState {db: sqlx_pool.clone(), redis: redis_clent.clone() } );
 
     // build our application with a route
     let app = Router::new()
         .route("/sign-in", post(api::auth::sign_in))
         .route("/sign-up", post(api::auth::sign_up))
-        .with_state(pool);
-
+        .with_state(arc);
+    
     let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
 
     // run our app with hyper, listening globally on port 3000

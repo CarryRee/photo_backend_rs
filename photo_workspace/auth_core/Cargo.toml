@@ -32,3 +32,5 @@ validator = { workspace = true }
 chrono = { workspace = true }
 #uuid
 uuid = { workspace = true }
+#缓存
+redis = { workspace = true }
