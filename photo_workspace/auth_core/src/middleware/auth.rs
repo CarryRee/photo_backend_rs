@@ -63,7 +63,7 @@ pub async fn auth(
                     if let Ok(user) = user::query_user_by_uuid(&state.db, &user_token.name, &user_token.uuid).await {
                         uuid = Some(user.uuid);
                         // 设置 key value 和过期时间
-                        let _: () = con.set_ex(user_token.uuid.clone(), "1", usize::try_from(user_token::THREE_DAY).unwrap()).await.unwrap();
+                        let _: () = con.set_ex(user_token.uuid.clone(), "1", u64::try_from(user_token::THREE_DAY).unwrap()).await.unwrap();
                     } 
                 }
             }

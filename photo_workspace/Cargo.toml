@@ -9,32 +9,32 @@ members = [
 
 [workspace.dependencies]
 #网络框架
-axum = {version = "0.7.1", features = ["multipart", "tracing", "macros", "http2"] }
+axum = {version = "0.7.2", features = ["multipart", "tracing", "macros", "http2"] }
 #异步
-tokio = {version = "1.33.0", features = ["full"] }
+tokio = {version = "1.34.0", features = ["full"] }
 #模块化组件库
 tower = "0.4.13"
 #中间件
 tower-http = { version = "0.5.0", features = ["limit", "trace"] }
 #序列化
-serde =  { version = "1.0.190", features = ["derive"] }
+serde =  { version = "1.0.193", features = ["derive"] }
 #序列化JSON
 serde_json = "1.0.108"
 #链路追踪-日志
 tracing = "0.1.40"
 #链路追踪
-tracing-subscriber = {version = "0.3.17", features = ["env-filter"] }
+tracing-subscriber = {version = "0.3.18", features = ["env-filter"] }
 #数据库
-sqlx = { version = "0.7.2", features = [ "runtime-tokio", "tls-native-tls", "mysql", "chrono"] }
+sqlx = { version = "0.7.3", features = [ "runtime-tokio", "tls-native-tls", "mysql", "chrono"] }
 #环境配置
 dotenvy = "0.15.7"
 #时间处理
 chrono = { version = "0.4.31", features = ["serde"] }
 #uuid
-uuid = { version = "1.5.0", features = ["v4", "fast-rng", "macro-diagnostics"] }
+uuid = { version = "1.6.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
 #jwt
-jsonwebtoken = { version = "9.1.0" }
+jsonwebtoken = { version = "9.2.0" }
 #验证
 validator = { version = "0.16.1", features = ["derive"] }
 #redis
-redis = { version = "0.23.3", features = ["tokio-comp"] }
+redis = { version = "0.24.0", features = ["tokio-comp"] }

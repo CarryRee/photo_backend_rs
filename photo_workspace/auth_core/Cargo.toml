@@ -34,3 +34,5 @@ chrono = { workspace = true }
 uuid = { workspace = true }
 #缓存
 redis = { workspace = true }
+#环境配置
+dotenvy = { workspace = true }
