@@ -57,9 +57,9 @@ async fn run_service() {
         .route_layer(middleware::from_fn_with_state(arc.clone(), 
         |state, req, next: middleware::Next| auth_core::middleware::auth::auth(state, req, next)),)
         .with_state(arc);
-
-
-    let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
+  
+    // 在docker容器中使用127.0.0.1就会导致只能容器内部访问
+    let address: SocketAddr = SocketAddr::from(([0, 0, 0, 0], port.parse::<u16>().unwrap()));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();

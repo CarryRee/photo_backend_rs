@@ -43,7 +43,7 @@ async fn run_service() {
         .route("/sign-up", post(api::auth::sign_up))
         .with_state(arc);
     
-    let address: SocketAddr = SocketAddr::from(([127, 0, 0, 1], port.parse::<u16>().unwrap()));
+    let address: SocketAddr = SocketAddr::from(([0, 0, 0, 0], port.parse::<u16>().unwrap()));
 
     // run our app with hyper, listening globally on port 3000
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();
